@@ -12,9 +12,9 @@ var salle = db.salles.findOne({"adresse.ville": "Nîmes"});
  
 var requete = { ... }; 
  
-db.salles.find(requete ... }; 
+db.salles.find(requete ... ); 
 ```
-
+```javascript
    db.salles.find({
       "adresse.localisation": {
       $geoWithin: {
@@ -22,7 +22,20 @@ db.salles.find(requete ... };
          }}, "styles": {$all: ["blues","soul"]}}, 
          {"_id":0 , "nom": 1 }
    )
-
+```
+autre solution :
+```javascript
+var req = {"adresse.localisation": {
+  $geoWithin: {
+    $centerSphere: [
+      salle.adresse.localisation.coordinates,
+      KilometresEnRadians(60)
+    ]
+  }
+}, "styles": {$in: {"blues", "soul"}}}
+ 
+db.salles.find(req, { "_id":0, "nom":1})
+```
 Exercice 2: 
 
 Écrivez la requête qui permet d’obtenir la ville des salles situées dans un rayon de 100 kilomètres autour de Marseille, triées de la plus proche à la plus lointaine :
@@ -34,26 +47,27 @@ db.salles.find(...)
 ```
 
    Creation d'un index 
-
+```javascript
    db.salles.createIndex({"adresse.localisation": "2dsphere"})
 
    db.salles.find({
    "adresse.localisation": {
       $nearSphere: {
          $geometry: marseille,
-         $maxDistance: 10000 // Distance maximale en mètres
+         $maxDistance: 100000 // Distance maximale en mètres
       }
    }
    }, {
    "_id": 0,
    "ville": 1
    })
+```
 
 Exercice 3:
 
 Soit polygone un objet GeoJSON de la forme suivante :
 
-
+polygone :structeur fermer 
 ```
 var polygone = { 
      "type": "Polygon", 
@@ -67,18 +81,17 @@ var polygone = {
      ] 
 } 
 ```
-
 Donnez le nom des salles qui résident à l’intérieur.
 
-   var polygone = { 
-     "type": "Polygon", 
-     "coordinates": [ 
-            [ 
-               [43.94899, 4.80908], 
-               [43.95292, 4.80929], 
-               [43.95174, 4.8056], 
-               [43.94899, 4.80908] 
-            ] 
-     ] 
-   } 
-
+```js
+db.salles.find({
+  "adresse.localisation": {
+    $geoWithin: {
+      $geometry: polygone
+    }
+  }
+}, {
+  "_id": 0,
+  "nom": 1
+})
+```

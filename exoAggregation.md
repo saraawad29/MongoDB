@@ -35,9 +35,11 @@ Exercice 3
 
 ```js
 var pipeline = [
-  {$group:{
-		"_id": {$substrBytes: ["$adresse.codePostal", 0,2]},
-		"cpacite_total": {$sum: "$capacite"}}},
+    {$addFields: { "departement":{$substrBytes: ["$adresse.codePostal", 0,2]}}},
+    {$group:{
+		"_id": "$departement",
+		"cpacite_total": {$sum: "$capacite"}},},
+    {$project: {"_id":0, "departement": "$_id", "cpacite_total":1}}
 ]
 
 db.salles.aggregate(pipeline)
@@ -60,6 +62,17 @@ var pipeline = [
 db.salles.aggregate(pipeline, { collation: { locale: 'fr', caseLevel: false }})
 ```
 
+```js
+var pipeline = [
+	{$unwind: "$styles"},
+    {$sortByCount: "$styles"},
+    {$project: {"_id":0, "style":"$_id", "capacite_total": "$count"}},
+	{$sort: {"style":1}}
+]
+
+db.salles.aggregate(pipeline, { collation: { locale: 'fr', caseLevel: false }})
+```
+
 Exercice 5
 
 À l’aide des buckets, comptez les salles en fonction de leur capacité :
@@ -73,7 +86,7 @@ var pipeline = [
     {
     $bucket: {
         groupBy: "$capacite",
-        boundaries: [100, 500, 5000],
+        boundaries: [100, 500, 5000],  //definir les limite
         default: "other",
         output: {
         count: { $sum: 1 }
@@ -96,6 +109,12 @@ var pipeline = [
 	_id: "$nom",
 	avis_excellents: { $push: "$avis" }}}
 ];
+
+db.salles.aggregate(pipeline)
+```
+
+```js
+var pipeline = [ {$project: {"_id": 0, "nom": 1, "avis_excellents": { $filter: { "input": "$avis", "as": "item", "cond": { $eq: ["$$item.note", 10] } } }}} ]
 
 db.salles.aggregate(pipeline)
 ```

@@ -17,7 +17,7 @@ db.salles.insertOne(
 
 Que proposez-vous pour régulariser la situation ?
 
-
+```js
     var rules = {
 	    "nom": {
 		"bsonType":"string",		
@@ -49,7 +49,7 @@ Que proposez-vous pour régulariser la situation ?
        }
    })
 
-
+```
 
 Exercice 2
 
